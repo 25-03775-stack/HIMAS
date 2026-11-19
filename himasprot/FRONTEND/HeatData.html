@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HeatData – HIMAS</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --surface: #ffffff;
+    --ink: #1d2327;
+    --muted: #5b646b;
+    --line: #d9d5cb;
+    --accent: #0b5c73;
+    --card-ink: #1d2327;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14181b;
+      --surface: #1d2327;
+      --ink: #eceae4;
+      --muted: #a2abb1;
+      --line: #343c41;
+      --accent: #5cc0da;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 28px 18px 56px; }
+  h1 { font-size: 1.7rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0 0 22px; }
+
+  form {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px;
+    display: grid;
+    gap: 14px;
+  }
+  label { display: block; font-size: .88rem; font-weight: 600; margin-bottom: 4px; }
+  select {
+    width: 100%;
+    font: inherit;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  #error {
+    margin-top: 16px; padding: 12px 14px; border-radius: 8px;
+    background: #FFEBEE; color: #B71C1C; border: 1px solid #B71C1C;
+  }
+
+  #result { margin-top: 22px; }
+  .card {
+    border-left: 8px solid var(--lv);
+    background: var(--lvbg);
+    color: var(--card-ink);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .level { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .level .name { font-size: 1.9rem; font-weight: 800; color: var(--lv); }
+  .level .where { color: #4a5258; }
+  .headline { margin: 8px 0 0; font-size: 1.05rem; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0 0; }
+  .stat { background: rgba(255,255,255,.7); border-radius: 8px; padding: 8px 10px; }
+  .stat b { display: block; font-size: 1.15rem; }
+  .stat span { font-size: .8rem; color: #4a5258; }
+
+  .notes { margin: 14px 0 0; padding: 0; list-style: none; font-size: .93rem; }
+  .notes li { margin: 3px 0; }
+  .hydration { margin-top: 14px; font-size: .93rem; }
+
+  @media (max-width: 560px) {
+    .stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Batangas Heat Index Monitor</h1>
+  <p class="sub">Select a municipality or city to automatically check live weather and heat index telemetry.</p>
+
+  <p id="mode" class="sub" style="font-size:.85rem"></p>
+
+  <form id="form">
+    <div>
+      <label for="q">Municipality / city (Batangas)</label>
+      <select id="q" name="q"></select>
+    </div>
+  </form>
+
+  <div id="error" role="alert" hidden></div>
+  <section id="result" aria-live="polite"></section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const MUNICIPALITIES = [
+  "Agoncillo", "Alitagtag", "Balayan", "Balete", "Batangas City", "Bauan",
+  "Calaca", "Calatagan", "Cuenca", "Ibaan", "Laurel", "Lemery",
+  "Lian", "Lipa City", "Lobo", "Mabini", "Malvar", "Mataasnakahoy",
+  "Nasugbu", "Padre Garcia", "Rosario", "San Jose", "San Juan", "San Luis",
+  "San Nicolas", "San Pascual", "Santa Teresita", "Santo Tomas City", "Taal", "Talisay",
+  "Tanauan City", "Taysan", "Tingloy", "Tuy"
+];
+
+const LEVEL_COLORS = ["#2E7D32", "#B26A00", "#D84315", "#B71C1C"];
+const LEVEL_BG = ["#E8F5E9", "#FFF8E1", "#FFF3E0", "#FFEBEE"];
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function showError(msg) {
+  const e = $("error");
+  e.textContent = msg;
+  e.hidden = false;
+}
+
+function renderResult(r) {
+  const lv = LEVEL_COLORS[r.level];
+  const bg = LEVEL_BG[r.level];
+
+  $("result").innerHTML = `
+    <div class="card" style="--lv:${esc(lv)};--lvbg:${esc(bg)}">
+      <div class="level">
+        <span class="name">${esc(r.levelName)}</span>
+        <span class="where">${esc(r.place)} &middot; ${esc(r.time.replace("T", " "))}</span>
+      </div>
+      <p class="headline">${r.headline}</p>
+      <div class="stats">
+        <div class="stat"><b>${r.temp.toFixed(1)}&deg;C</b><span>Temperature</span></div>
+        <div class="stat"><b>${r.humidity.toFixed(0)}%</b><span>Humidity</span></div>
+        <div class="stat"><b>${r.heatIndex.toFixed(1)}&deg;C</b><span>Heat index (${esc(r.pagasaCategory)})</span></div>
+        <div class="stat"><b>${r.apparent.toFixed(1)}&deg;C</b><span>Feels like</span></div>
+      </div>
+      <p class="hydration" style="margin-top:16px;"><b>Water Guidance:</b> ${esc(r.hydration)}</p>
+    </div>`;
+}
+
+async function fetchAssessment(municipality) {
+  $("error").hidden = true;
+  try {
+    // Correct endpoint matching HeatServer.java (/api/assess)
+    const res = await fetch(`http://localhost:8080/api/assess?q=${encodeURIComponent(municipality)}&activity=0&place=0&crowd=0`);
+    if (!res.ok) throw new Error("Backend returned HTTP " + res.status);
+    const data = await res.json();
+    $("mode").textContent = "Connected to the Java backend (HeatAssessmentService).";
+    renderResult(data);
+  } catch (e) {
+    $("result").innerHTML = "";
+    showError("Could not connect to Java backend on http://localhost:8080. Make sure your HeatServer is running in VS Code terminal (" + e.message + ").");
+  }
+}
+
+$("q").addEventListener("change", (ev) => {
+  fetchAssessment(ev.target.value);
+});
+
+(function init() {
+  $("q").innerHTML = MUNICIPALITIES.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join("");
+  $("q").value = "Batangas City";
+  fetchAssessment("Batangas City");
+})();
+</script>
+
+<a href="main-page.html">
+<button type = "button">
+     HOME
+  </button>
+</a>
+
+</body>
+</html>
