@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Himas - Main Page</title>
+    <link rel="stylesheet" href="himas_design.css">
+</head>
+<body>
+    <div class="container">
+        <h2> - Risk Log In Assessment-</h2>
+        
+        <form id="userForm">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required><br><br>
+
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age" required><br><br>
+
+            <label for="weight">Weight (kg):</label>
+            <input type="number" id="weight" name="weight" required><br><br>
+
+            <label for="riskFactor">Risk Factor:</label>
+            <input type="text" id="riskFactor" name="riskFactor" required><br><br>
+
+            <button type="submit">Submit</button>
+        </form>
+
+
+            <a href="Risk_profile.html">
+                <button type="button">
+                     Risk Profile 
+                </button>
+            </a>
+            <a href="main-page.html">
+                <button type="button">
+                     HOME
+                </button>
+            </a>
+    </div>
+
+    <script>
+        document.getElementById('userForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Stops the page from jumping away automatically
+            
+            const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+            const weight = document.getElementById('weight').value;
+            const riskFactor = document.getElementById('riskFactor').value;
+
+            // 1. Save data locally so the second page can read it when clicked
+            sessionStorage.setItem('risk_name', name);
+            sessionStorage.setItem('risk_age', age);
+            sessionStorage.setItem('risk_weight', weight);
+            sessionStorage.setItem('risk_factor', riskFactor);
+
+            try {
+                // 2. Send data to Java backend in the background
+                const url = `http://localhost:8080/api/process-name?name=${encodeURIComponent(name)}&age=${encodeURIComponent(age)}&weight=${encodeURIComponent(weight)}&riskFactor=${encodeURIComponent(riskFactor)}`;
+                await fetch(url);
+                
+                // 3. Clear all input boxes automatically
+                document.getElementById('userForm').reset();
+                
+                // 4. Show the manual button to view the risk profile
+                document.getElementById('profileButtonContainer').style.display = 'block';
+                
+            } catch (error) {
+                console.error("Error sending to backend:", error);
+            }
+        });
+    </script>
+</body>
+</html>
