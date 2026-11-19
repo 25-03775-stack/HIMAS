@@ -1,5 +1,3 @@
-package himas;
-
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;

@@ -1,5 +1,3 @@
-package himas;
-
 public final class HeatData {
     private HeatData() {
     }
