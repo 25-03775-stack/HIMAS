@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>HIMAS - Activity Advice</title>
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f2f6fc;
+    margin: 0;
+    padding: 30px;
+}
+
+.container {
+    max-width: 650px;
+    margin: auto;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+}
+
+h1 {
+    color: #1976d2;
+}
+
+.profile, .advice, .warning {
+    padding: 15px;
+    margin-top: 15px;
+    border-radius: 8px;
+}
+
+.profile {
+    background: #e8f1ff;
+}
+
+.advice {
+    background: #e8f7ed;
+}
+
+.warning {
+    background: #fff2d9;
+}
+
+button {
+    padding: 10px 20px;
+    background: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 20px;
+    margin-right: 8px;
+}
+
+button:hover {
+    background: #125ca1;
+}
+
+.risk-label {
+    font-weight: bold;
+    color: #1976d2;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>HIMAS</h1>
+
+    <h2>Physical Activity Advice</h2>
+
+    <p>
+        Personalized physical activity recommendations
+        based on your Risk Profile.
+    </p>
+
+    <div class="profile">
+
+        <h3>User Assessment Information</h3>
+
+        <p>Name: <span id="name"></span></p>
+
+        <p>Age: <span id="age"></span></p>
+
+        <p>Weight: <span id="weight"></span> kg</p>
+
+        <p>
+            Risk Factor:
+            <span id="riskFactor" class="risk-label"></span>
+        </p>
+
+    </div>
+
+    <div class="advice">
+
+        <h3>Recommended Activities</h3>
+
+        <div id="recommendations">
+            Loading recommendations...
+        </div>
+
+    </div>
+
+    <div class="warning">
+
+        <h3>Safety Reminder</h3>
+
+        <p id="safetyMessage"></p>
+
+    </div>
+
+    <button onclick="location.href='Risk_profile.html'">
+        Back to Risk Profile
+    </button>
+
+    <button onclick="location.href='main-page.html'">
+        HOME
+    </button>
+
+</div>
+
+<script>
+
+// Retrieve Risk Profile information
+const savedData = sessionStorage.getItem("himas_assessment");
+
+const nameElement = document.getElementById("name");
+
+const ageElement = document.getElementById("age");
+
+const weightElement = document.getElementById("weight");
+
+const riskElement = document.getElementById("riskFactor");
+
+const recommendationsElement =
+    document.getElementById("recommendations");
+
+const safetyElement =
+    document.getElementById("safetyMessage");
+
+// Check if information exists
+if (!savedData) {
+
+    recommendationsElement.textContent =
+        "No Risk Profile information found. Please complete your assessment first.";
+
+    safetyElement.textContent =
+        "Complete your Risk Profile before viewing activity recommendations.";
+
+} else {
+
+    try {
+
+        const user = JSON.parse(savedData);
+
+        if (
+            !user ||
+            !user.name ||
+            !user.age ||
+            !user.weight ||
+            !user.riskFactor
+        ) {
+            throw new Error("Incomplete assessment information.");
+        }
+
+        // Display user information
+        nameElement.textContent = user.name;
+
+        ageElement.textContent = user.age;
+
+        weightElement.textContent = user.weight;
+
+        riskElement.textContent = user.riskFactor;
+
+        const risk = String(user.riskFactor).trim().toUpperCase();
+
+        let activities = "";
+
+        let safety = "";
+
+        // LOW RISK
+        if (risk === "LOW") {
+
+            activities = `
+                <ul>
+                    <li>Walking in a shaded area</li>
+                    <li>Light stretching</li>
+                    <li>Gentle indoor exercises</li>
+                    <li>Light recreational activities</li>
+                </ul>
+            `;
+
+            safety =
+                "Stay hydrated, take breaks, and avoid excessive heat.";
+
+        }
+
+        // MODERATE RISK
+        else if (risk === "MODERATE") {
+
+            activities = `
+                <ul>
+                    <li>Gentle indoor stretching</li>
+                    <li>Light yoga in a cool room</li>
+                    <li>Relaxed indoor mobility exercises</li>
+                </ul>
+            `;
+
+            safety =
+                "Avoid strenuous outdoor activities. Exercise only in a cool environment and take regular breaks.";
+
+        }
+
+        // HIGH RISK
+        else if (risk === "HIGH") {
+
+            activities = `
+                <ul>
+                    <li>Gentle indoor stretching, only if comfortable</li>
+                    <li>Light mobility exercises in a cool environment, if safe</li>
+                </ul>
+            `;
+
+            safety =
+                "Avoid outdoor exercise and strenuous physical activities. If you feel unwell, stop and move to a cool place.";
+
+        }
+
+        // CRITICAL RISK
+        else if (risk === "CRITICAL") {
+
+            activities = `
+                <p>
+                    No physical activities are recommended
+                    while critical heat risk conditions persist.
+                </p>
+            `;
+
+            safety =
+                "Prioritize cooling down and follow emergency heat-safety guidance. Seek immediate medical assistance if heat illness is suspected.";
+
+        }
+
+        // INVALID RISK
+        else {
+
+            activities = `
+                <p>
+                    No recommendations available.
+                    Your heat risk level must be assessed first.
+                </p>
+            `;
+
+            safety =
+                "Please verify your Risk Profile information.";
+
+        }
+
+        // Display recommendations
+        recommendationsElement.innerHTML = activities;
+
+        safetyElement.textContent = safety;
+
+    } catch (error) {
+
+        console.error("Activity Advice Error:", error);
+
+        recommendationsElement.textContent =
+            "Unable to read Risk Profile information. Please complete your assessment again.";
+
+        safetyElement.textContent =
+            "Please return to Risk Profile and save your information again.";
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
