@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Himas - Risk Profile</title>
+    <link rel="stylesheet" href="himas_design.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <h2>Risk Profile Page</h2>
+
+        <p><strong>Name:</strong> <span id="outputName">Loading...</span></p>
+        <p><strong>Age:</strong> <span id="outputAge">Loading...</span></p>
+        <p><strong>Weight:</strong> <span id="outputWeight">Loading...</span></p>
+        <p><strong>Risk Factor:</strong> <span id="outputRisk">Loading...</span></p>
+
+        <br>
+
+        <a href="main-page.html">
+            <button type="button">HOME</button>
+        </a>
+
+        <a href="ActivityAdvice.html">
+            <button type="button">VIEW ACTIVITY ADVICE</button>
+        </a>
+
+    </div>
+
+    <script>
+
+        // Retrieve saved Risk Profile information
+        const name = sessionStorage.getItem('risk_name');
+        const age = sessionStorage.getItem('risk_age');
+        const weight = sessionStorage.getItem('risk_weight');
+        const riskFactor = sessionStorage.getItem('risk_factor');
+
+        // Display saved information
+        document.getElementById('outputName').innerText =
+            name || "No data found";
+
+        document.getElementById('outputAge').innerText =
+            age || "N/A";
+
+        document.getElementById('outputWeight').innerText =
+            weight ? weight + " kg" : "N/A";
+
+        document.getElementById('outputRisk').innerText =
+            riskFactor || "N/A";
+
+        // Combine information for Activity Advice
+        const userData = {
+            name: name,
+            age: age,
+            weight: weight,
+            riskFactor: riskFactor
+        };
+
+        // Save information for Activity Advice page
+        sessionStorage.setItem(
+            "himas_assessment",
+            JSON.stringify(userData)
+        );
+
+    </script>
+
+</body>
+</html>
