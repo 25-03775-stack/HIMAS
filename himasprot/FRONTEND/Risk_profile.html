@@ -1,0 +1,272 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>HIMAS - Risk Profile</title>
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f2f6fc;
+    margin: 0;
+    padding: 30px;
+}
+
+.container {
+    max-width: 650px;
+    margin: auto;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+}
+
+h1 {
+    color: #1976d2;
+}
+
+label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+input, select {
+    width: 100%;
+    padding: 11px;
+    margin-top: 6px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 15px;
+}
+
+button {
+    padding: 11px 20px;
+    background: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 20px;
+    margin-right: 8px;
+}
+
+button:hover {
+    background: #125ca1;
+}
+
+.result {
+    background: #e8f1ff;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 8px;
+}
+
+.error {
+    color: #b71c1c;
+    margin-top: 12px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>HIMAS</h1>
+
+    <h2>Personalized Risk Profile</h2>
+
+    <p>
+        Enter your information to create your
+        personalized heat risk profile.
+    </p>
+
+    <form id="riskForm">
+
+        <label for="name">Full Name</label>
+
+        <input
+            type="text"
+            id="name"
+            placeholder="Enter your name"
+            required
+        >
+
+        <label for="age">Age</label>
+
+        <input
+            type="number"
+            id="age"
+            placeholder="Enter your age"
+            min="1"
+            max="120"
+            required
+        >
+
+        <label for="weight">Weight (kg)</label>
+
+        <input
+            type="number"
+            id="weight"
+            placeholder="Enter your weight"
+            min="1"
+            step="0.1"
+            required
+        >
+
+        <label for="riskFactor">Heat Risk Level</label>
+
+        <select id="riskFactor" required>
+
+            <option value="">Select risk level</option>
+
+            <option value="LOW">LOW</option>
+
+            <option value="MODERATE">MODERATE</option>
+
+            <option value="HIGH">HIGH</option>
+
+            <option value="CRITICAL">CRITICAL</option>
+
+        </select>
+
+        <button type="submit">
+            Save Risk Profile
+        </button>
+
+    </form>
+
+    <div id="errorMessage" class="error"></div>
+
+    <div id="profileResult" class="result" hidden>
+
+        <h3>Assessment Information</h3>
+
+        <p>Name: <span id="outputName"></span></p>
+
+        <p>Age: <span id="outputAge"></span></p>
+
+        <p>Weight: <span id="outputWeight"></span> kg</p>
+
+        <p>Risk Factor: <strong id="outputRisk"></strong></p>
+
+        <button type="button" onclick="goToActivityAdvice()">
+            View Activity Advice
+        </button>
+
+    </div>
+
+    <button type="button" onclick="location.href='main-page.html'">
+        HOME
+    </button>
+
+</div>
+
+<script>
+
+const riskForm = document.getElementById("riskForm");
+
+riskForm.addEventListener("submit", function(event) {
+
+    event.preventDefault();
+
+    const name = document.getElementById("name").value.trim();
+
+    const age = document.getElementById("age").value;
+
+    const weight = document.getElementById("weight").value;
+
+    const riskFactor = document.getElementById("riskFactor").value;
+
+    const errorMessage = document.getElementById("errorMessage");
+
+    errorMessage.textContent = "";
+
+    // Validate information
+    if (!name || !age || !weight || !riskFactor) {
+
+        errorMessage.textContent =
+            "Please complete all required fields.";
+
+        return;
+
+    }
+
+    if (Number(age) <= 0 || Number(weight) <= 0) {
+
+        errorMessage.textContent =
+            "Please enter valid age and weight values.";
+
+        return;
+
+    }
+
+    // Store assessment information
+    const userData = {
+
+        name: name,
+
+        age: age,
+
+        weight: weight,
+
+        riskFactor: riskFactor
+
+    };
+
+    // Save information using sessionStorage
+    sessionStorage.setItem(
+        "himas_assessment",
+        JSON.stringify(userData)
+    );
+
+    // Preserve the individual keys if other pages use them
+    sessionStorage.setItem("risk_name", name);
+
+    sessionStorage.setItem("risk_age", age);
+
+    sessionStorage.setItem("risk_weight", weight);
+
+    sessionStorage.setItem("risk_factor", riskFactor);
+
+    // Display saved information
+    document.getElementById("outputName").textContent = name;
+
+    document.getElementById("outputAge").textContent = age;
+
+    document.getElementById("outputWeight").textContent = weight;
+
+    document.getElementById("outputRisk").textContent = riskFactor;
+
+    document.getElementById("profileResult").hidden = false;
+
+});
+
+function goToActivityAdvice() {
+
+    const savedData = sessionStorage.getItem("himas_assessment");
+
+    if (!savedData) {
+
+        alert("Please save your Risk Profile first.");
+
+        return;
+
+    }
+
+    window.location.href = "ActivityAdvice.html";
+
+}
+
+</script>
+
+</body>
+</html>
